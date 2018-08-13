@@ -27,9 +27,10 @@ install:
   - ps: iex ((new-object net.webclient).DownloadString("https://raw.githubusercontent.com/JuliaCI/Appveyor.jl/version-1/bin/install.ps1"))
 
 build_script:
+  - echo "using Pkg; Pkg.add(PackageSpec(url="https://github.com/awllee/SimpleSMC.jl"))"
+  - C:\julia\bin\julia -e "using Pkg; Pkg.add(PackageSpec(url="https://github.com/awllee/SimpleSMC.jl"))"
   - echo "%JL_BUILD_SCRIPT%"
   - C:\julia\bin\julia -e "%JL_BUILD_SCRIPT%"
-  - C:\julia\bin\julia -e "using Pkg; Pkg.add(PackageSpec(url="https://github.com/awllee/SimpleSMC.jl"))"
 
 test_script:
   - echo "%JL_TEST_SCRIPT%"
