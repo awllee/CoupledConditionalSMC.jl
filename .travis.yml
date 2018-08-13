@@ -23,7 +23,7 @@ matrix:
 #    packages:
 #    - gfortran
 before_script: # homebrew for mac
- - julia -e 'import Pkg; Pkg.add(PackageSpec(url="https://github.com/awllee/SimpleSMC.jl"))'
+ - julia -e 'using Pkg; Pkg.add(PackageSpec(url="https://github.com/awllee/SimpleSMC.jl"))'
 
 ## uncomment the following lines to override the default test script
 #script:
