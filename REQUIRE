@@ -3,3 +3,4 @@ SequentialMonteCarlo
 NonUniformRandomVariateGeneration
 RNGPool
 ProgressMeter
+SimpleSMC
