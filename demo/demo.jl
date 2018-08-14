@@ -31,6 +31,11 @@ function visualizeCCSMC(model::SMCModel, lM::F, N::Int64, maxit::Int64,
   printFreq::Int64 = 1) where F<:Function
 
   uselM::Bool = lM != error
+  if uselM
+    println("\nBackward sampling, N = ", N, ":\n")
+  else
+    println("\nAncestral tracing, N = ", N, ":\n")
+  end
   ccsmcio = CCSMCIO{model.particle, model.pScratch}(N, model.maxn)
 
   if uselM

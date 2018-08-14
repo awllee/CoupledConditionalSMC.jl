@@ -5,7 +5,7 @@ include("demo.jl")
 
 setRNGs(12345)
 
-## box is [-1.0,1.0], n = 1000
+println("Using a Simple Model with n = 1000, boxSize = 1.0")
 simpleModel, simplelM = setupSimpleModel(1000, 1.0)
 
 ## CCBPF couples after a number of steps, less with larger values of N
