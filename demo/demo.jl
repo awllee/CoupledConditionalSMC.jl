@@ -39,7 +39,7 @@ function visualizeCCSMC(model::SMCModel, lM::F, N::Int64, maxit::Int64,
     initializeCCSMC(model, ccsmcio, true)
   end
 
-  quantum = max(1, ceil(Int64, ccsmcio.n / 100))
+  quantum = max(1, ceil(Int64, ccsmcio.n / displaysize(stdout)[2]))
 
   ref1 = ccsmcio.ref1
   ref2 = ccsmcio.ref2
