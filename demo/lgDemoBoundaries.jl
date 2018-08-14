@@ -3,6 +3,7 @@ using Plots
 Plots.gr()
 
 include("demo.jl")
+include("lgModel.jl")
 
 verbose = false
 

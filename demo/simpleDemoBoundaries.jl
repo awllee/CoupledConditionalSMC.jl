@@ -33,7 +33,7 @@ plot!(b24)
 plot!(b25)
 
 setRNGs(12345)
-model, lM = setupSimpleModel(10.0, 1000) # box is [-10.0,10.0], n = 1000
+model, lM = setupSimpleModel(1000, 10.0) # box is [-10.0,10.0], n = 1000
 @time b35 = CCSMCBoundaries(model, lM, 32, 1000, verbose); plot(b35)
 @time b36 = CCSMCBoundaries(model, lM, 64, 1000, verbose); plot!(b36)
 @time b37 = CCSMCBoundaries(model, lM, 128, 1000, verbose); plot!(b37)
