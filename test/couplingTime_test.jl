@@ -22,6 +22,9 @@ function testCouplingTime(n::Int64, N::Int64, maxit::Int64)
   @test timeAS > 0
   timeAT = CoupledConditionalSMC.couplingTime(model, ccsmcio, false, maxit)
   @test timeAT > 0
+
+  timesBS = CoupledConditionalSMC.couplingTimes(model, lM, ccsmcio, false, 100, maxit)
+  @test all(timesBS .> 0)
 end
 
 setRNGs(12345)

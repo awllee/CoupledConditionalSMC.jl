@@ -203,3 +203,21 @@ function couplingTime(model::SMCModel, ccsmcio::CCSMCIO{Particle},
 
   return couplingTime(model, error, ccsmcio, independentInitialization, maxit)
 end
+
+function couplingTimes(model::SMCModel, lM::F, ccsmcio::CCSMCIO{Particle},
+  independentInitialization::Bool, m::Int64, maxit::Int64 = typemax(Int64),
+  ancestorSampling::Bool = false) where {F<:Function, Particle}
+
+  vs::Vector{Int64} = Vector{Int64}(undef, m)
+  for i in 1:m
+    vs[i] = couplingTime(model, lM, ccsmcio, independentInitialization, maxit,
+      ancestorSampling)
+  end
+  return vs
+end
+
+function couplingTimes(model::SMCModel, ccsmcio::CCSMCIO{Particle},
+  independentInitialization::Bool, m::Int64,
+  maxit::Int64 = typemax(Int64)) where Particle
+  return couplingTimes(model, error, ccsmcio, independentInitialization, m, maxit)
+end
