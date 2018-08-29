@@ -21,3 +21,11 @@ visualizeCCSMC(simpleModel, simplelM, 128, 10000)
 visualizeCCSMC(simpleModel, 128, 100)
 ## CCPF essentially will couple eventually in one shot with 2^14 particles
 visualizeCCSMC(simpleModel, 2^14, 100)
+
+visualizeCCSMC(simpleModel, simplelM, 2, 10000, true)
+visualizeCCSMC(simpleModel, simplelM, 4, 10000, true)
+visualizeCCSMC(simpleModel, simplelM, 8, 10000, true)
+visualizeCCSMC(simpleModel, simplelM, 16, 10000, true)
+visualizeCCSMC(simpleModel, simplelM, 32, 10000, true)
+visualizeCCSMC(simpleModel, simplelM, 64, 10000, true)
+visualizeCCSMC(simpleModel, simplelM, 128, 10000, true)

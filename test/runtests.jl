@@ -18,3 +18,4 @@ end
 
 include("ffk_test.jl")
 include("estimate_test.jl")
+include("couplingTime_test.jl")

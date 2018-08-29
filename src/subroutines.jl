@@ -149,3 +149,37 @@ function _pickParticlesBS!(ccsmcio::CCSMCIO{Particle}, lM::F) where
     particleCopy!(ref2[p], allZetas2[p][k2])
   end
 end
+
+## index-coupled ancestor sampling
+## this is slightly different to
+## Jacob, P.E., Lindsten, F. and Schön, T.B., 2018. Smoothing with couplings of
+## conditional particle filters. J. of the Amer. Statist. Assoc. 2018.
+## who appear to use quantile coupling of the ancestor index in their code
+function _ancestorSample!(ccsmcio, p, lM::F) where F<:Function
+  zetas1 = ccsmcio.smcio1.zetas
+  zetas2 = ccsmcio.smcio2.zetas
+  zetaRef1 = ccsmcio.ref1[p+1]
+  zetaRef2 = ccsmcio.ref2[p+1]
+  bws1 = ccsmcio.bws1
+  bws2 = ccsmcio.bws2
+  ws1 = ccsmcio.smcio1.ws
+  ws2 = ccsmcio.smcio2.ws
+  pScratch = ccsmcio.smcio1.internal.particleScratch
+
+  N = ccsmcio.N
+
+  bws1 .= log.(ws1)
+  bws2 .= log.(ws2)
+  for j in 1:N
+    bws1[j] += lM(p+1, zetas1[j], zetaRef1, pScratch)
+    bws2[j] += lM(p+1, zetas2[j], zetaRef2, pScratch)
+  end
+  m = maximum(bws1)
+  bws1 .= exp.(bws1 .- m)
+  m = maximum(bws2)
+  bws2 .= exp.(bws2 .- m)
+  k1, k2 = _coupledSampleIndices(ccsmcio, bws1, bws2)
+
+  ccsmcio.smcio1.internal.as[1] = k1
+  ccsmcio.smcio2.internal.as[1] = k2
+end

@@ -1,7 +1,8 @@
 using SimpleSMC
 using ProgressMeter
 
-function _ccXpf!(model::SMCModel, ccsmcio::CCSMCIO{Particle}) where Particle
+function _ccXpf!(model::SMCModel, ccsmcio::CCSMCIO{Particle},
+  lM::F = error) where {Particle, F<:Function}
   zetas1 = ccsmcio.smcio1.zetas
   zetaAncs1 = ccsmcio.smcio1.internal.zetaAncs
   lws1 = ccsmcio.smcio1.internal.lws
@@ -47,25 +48,34 @@ function _ccXpf!(model::SMCModel, ccsmcio::CCSMCIO{Particle}) where Particle
     ws2 ./= mws
     @inbounds logZhats2[p] = lZ2
 
-    p < ccsmcio.n && _coupledResample!(ccsmcio)
+    if p < ccsmcio.n
+      _coupledResample!(ccsmcio)
+      lM != error && _ancestorSample!(ccsmcio, p, lM)
+    end
 
     _intermediateOutput!(ccsmcio.smcio1, p)
     _intermediateOutput!(ccsmcio.smcio2, p)
   end
 end
 
-function ccXpf!(model::SMCModel, lM::F, ccsmcio::CCSMCIO{Particle}) where
+function ccXpf!(model::SMCModel, lM::F, ccsmcio::CCSMCIO{Particle},
+  ancestorSampling::Bool = false) where
   {F<:Function, Particle}
-  _ccXpf!(model, ccsmcio)
-  if lM != error
-    _pickParticlesBS!(ccsmcio, lM)
-  else
+  if ancestorSampling
+    _ccXpf!(model, ccsmcio, lM)
     _pickParticles!(ccsmcio)
+  else
+    _ccXpf!(model, ccsmcio)
+    if lM != error
+      _pickParticlesBS!(ccsmcio, lM)
+    else
+      _pickParticles!(ccsmcio)
+    end
   end
 end
 
 function ccXpf!(model::SMCModel, ccsmcio::CCSMCIO{Particle}) where Particle
-  ccXpf!(model, error, ccsmcio)
+  ccXpf!(model, error, ccsmcio, false)
 end
 
 function initializeCCSMC(model::SMCModel, lM::F, ccsmcio::CCSMCIO{Particle},
@@ -107,10 +117,11 @@ function checkEqual(v1::Vector{Particle}, v2::Vector{Particle}) where Particle
 end
 
 function unbiasedEstimate(model::SMCModel, lM::F1, h::F2,
-  ccsmcio::CCSMCIO{Particle}, b::Int64, maxit::Int64 = typemax(Int64)) where
+  ccsmcio::CCSMCIO{Particle}, b::Int64, independentInitialization::Bool,
+  maxit::Int64 = typemax(Int64), ancestorSampling::Bool = false) where
   {F1<:Function, F2<:Function, Particle}
 
-  initializeCCSMC(model, lM, ccsmcio)
+  initializeCCSMC(model, lM, ccsmcio, independentInitialization)
 
   ref1 = ccsmcio.ref1
   ref2 = ccsmcio.ref2
@@ -118,7 +129,7 @@ function unbiasedEstimate(model::SMCModel, lM::F1, h::F2,
   v = h(ref1) # just to get the type of v
 
   for i in 1:maxit
-    ccXpf!(model, lM, ccsmcio)
+    ccXpf!(model, lM, ccsmcio, ancestorSampling)
     if i >= b
       if i == b
         v = h(ref1)
@@ -130,20 +141,24 @@ function unbiasedEstimate(model::SMCModel, lM::F1, h::F2,
       end
     end
   end
-  error("maxit iterations exceeded")
+  # error("maxit iterations exceeded")
+  return (maxit, v)
 end
 
 function unbiasedEstimate(model::SMCModel, h::F, ccsmcio::CCSMCIO{Particle},
-  b::Int64, maxit::Int64 = typemax(Int64)) where {F<:Function, Particle}
-  return unbiasedEstimate(model, error, h, ccsmcio, b, maxit)
+  b::Int64, independentInitialization::Bool, maxit::Int64 = typemax(Int64)) where
+  {F<:Function, Particle}
+  return unbiasedEstimate(model, error, h, ccsmcio, b,
+    independentInitialization, maxit)
 end
 
 function unbiasedEstimates(model::SMCModel, lM::F1, h::F2,
   ccsmcio::CCSMCIO{Particle}, b::Int64, m::Int64,
-  maxit::Int64 = typemax(Int64)) where {F1<:Function, F2<:Function, Particle}
+  independentInitialization::Bool, maxit::Int64 = typemax(Int64),
+  ancestorSampling::Bool = false) where {F1<:Function, F2<:Function, Particle}
 
   # just to get the type of v
-  initializeCCSMC(model, ccsmcio)
+  initializeCCSMC(model, ccsmcio, independentInitialization)
   v = h(ccsmcio.ref1)
   T = typeof(v)
 
@@ -151,7 +166,8 @@ function unbiasedEstimates(model::SMCModel, lM::F1, h::F2,
   values = Vector{T}(undef, m)
 
   @showprogress 10 for i in 1:m
-    v = unbiasedEstimate(model, lM, h, ccsmcio, b, maxit)
+    v = unbiasedEstimate(model, lM, h, ccsmcio, b, independentInitialization,
+      maxit, ancestorSampling)
     iterations[i] = v[1]
     values[i] = v[2]
   end
@@ -160,7 +176,30 @@ function unbiasedEstimates(model::SMCModel, lM::F1, h::F2,
 end
 
 function unbiasedEstimates(model::SMCModel, h::F, ccsmcio::CCSMCIO{Particle},
-  b::Int64, m::Int64, maxit::Int64 = typemax(Int64)) where
-  {F<:Function, Particle}
-  return unbiasedEstimates(model, error, h, ccsmcio, b, m, maxit)
+  b::Int64, m::Int64, independentInitialization::Bool,
+  maxit::Int64 = typemax(Int64)) where {F<:Function, Particle}
+  return unbiasedEstimates(model, error, h, ccsmcio, b, m,
+    independentInitialization, maxit)
+end
+
+function couplingTime(model::SMCModel, lM::F, ccsmcio::CCSMCIO{Particle},
+  independentInitialization::Bool, maxit::Int64 = typemax(Int64),
+  ancestorSampling::Bool = false) where {F<:Function, Particle}
+
+  initializeCCSMC(model, lM, ccsmcio, independentInitialization)
+
+  ref1 = ccsmcio.ref1
+  ref2 = ccsmcio.ref2
+
+  for i in 1:maxit
+    ccXpf!(model, lM, ccsmcio, ancestorSampling)
+    checkEqual(ref1, ref2) && return i
+  end
+  return 0
+end
+
+function couplingTime(model::SMCModel, ccsmcio::CCSMCIO{Particle},
+  independentInitialization::Bool, maxit::Int64 = typemax(Int64)) where Particle
+
+  return couplingTime(model, error, ccsmcio, independentInitialization, maxit)
 end

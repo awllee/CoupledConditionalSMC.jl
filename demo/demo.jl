@@ -28,11 +28,15 @@ end
 
 # run the CCxPF and visualize until the meeting time
 function visualizeCCSMC(model::SMCModel, lM::F, N::Int64, maxit::Int64,
-  printFreq::Int64 = 1) where F<:Function
+  ancestorSampling::Bool = false) where F<:Function
 
   uselM::Bool = lM != error
   if uselM
-    println("\nBackward sampling, N = ", N, ":\n")
+    if ancestorSampling
+      println("\nAncestor sampling, N = ", N, ":\n")
+    else
+      println("\nBackward sampling, N = ", N, ":\n")
+    end
   else
     println("\nAncestral tracing, N = ", N, ":\n")
   end
@@ -53,11 +57,11 @@ function visualizeCCSMC(model::SMCModel, lM::F, N::Int64, maxit::Int64,
 
   for i in 1:maxit
     if uselM
-      ccXpf!(model, lM, ccsmcio)
+      ccXpf!(model, lM, ccsmcio, ancestorSampling)
     else
       ccXpf!(model, ccsmcio)
     end
-    mod(i, printFreq) == 0 && printstyled(makeString(ref1, ref2, quantum), color=:green)
+    printstyled(makeString(ref1, ref2, quantum), color=:green)
     if CoupledConditionalSMC.checkEqual(ref1, ref2)
       println("coupled at iteration $i")
       return i
@@ -68,9 +72,8 @@ function visualizeCCSMC(model::SMCModel, lM::F, N::Int64, maxit::Int64,
 end
 
 # run the CCPF and visualize until the meeting time
-function visualizeCCSMC(model::SMCModel, N::Int64, maxit::Int64,
-  printFreq::Int64 = 1)
-  return visualizeCCSMC(model, error, N, maxit, printFreq)
+function visualizeCCSMC(model::SMCModel, N::Int64, maxit::Int64)
+  return visualizeCCSMC(model, error, N, maxit)
 end
 
 function computeBoundary(v1::Vector{Particle}, v2::Vector{Particle}) where Particle
@@ -78,33 +81,6 @@ function computeBoundary(v1::Vector{Particle}, v2::Vector{Particle}) where Parti
     if v1[i] != v2[i] return i-1 end
   end
   return length(v1)
-end
-
-# run the CCPF and record the boundaries
-function CCPFBoundaries(model::SMCModel, N::Int64, maxit::Int64,
-  verbose::Bool = false)
-  ccsmcio = CCSMCIO{model.particle, model.pScratch}(N, model.maxn)
-  initializeCCSMC(model, ccsmcio)
-
-  boundaries = Vector{Int64}(undef, maxit)
-  ref1 = ccsmcio.ref1
-  ref2 = ccsmcio.ref2
-  n = length(ref1)
-
-  maxb::Int64 = 1
-  for i in 1:maxit
-    ccXpf!(model, ccsmcio)
-    boundary = computeBoundary(ref1, ref2)
-    boundaries[i] = boundary
-    if verbose && boundary > maxb
-      maxb = boundary
-      println(boundary, " : ", i)
-    end
-    if boundary == n
-      return boundaries[1:i]
-    end
-  end
-  return boundaries
 end
 
 # run the CCBPF and record the boundaries
