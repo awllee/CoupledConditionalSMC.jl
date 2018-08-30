@@ -7,9 +7,10 @@ import NonUniformRandomVariateGeneration.sampleCategorical
 function _indexCoupledMutateParticles!(zetas1::Vector{Particle},
   zetas2::Vector{Particle}, M!::F, p::Int64, zetaAncs1::Vector{Particle},
   zetaAncs2::Vector{Particle}, pScratch::ParticleScratch, xref1::Particle,
-  xref2::Particle, rng::RNG) where {Particle, F<:Function, ParticleScratch}
+  xref2::Particle) where {Particle, F<:Function, ParticleScratch}
   @inbounds particleCopy!(zetas1[1], xref1)
   @inbounds particleCopy!(zetas2[1], xref2)
+  rng = getRNG()
   for j in 2:length(zetas1)
     @inbounds M!(zetas1[j], rng, p, zetaAncs1[j], pScratch)
     if p == 1 || zetaAncs1[j] == zetaAncs2[j]
@@ -17,6 +18,20 @@ function _indexCoupledMutateParticles!(zetas1::Vector{Particle},
     else
       @inbounds M!(zetas2[j], rng, p, zetaAncs2[j], pScratch)
     end
+  end
+end
+
+function _rngCoupledMutateParticles!(zetas1::Vector{Particle},
+  zetas2::Vector{Particle}, M!::F, p::Int64, zetaAncs1::Vector{Particle},
+  zetaAncs2::Vector{Particle}, pScratch::ParticleScratch, xref1::Particle,
+  xref2::Particle) where {Particle, F<:Function, ParticleScratch}
+  @inbounds particleCopy!(zetas1[1], xref1)
+  @inbounds particleCopy!(zetas2[1], xref2)
+  rng1 = getRNG()
+  rng2 = deepcopy(rng1)
+  for j in 2:length(zetas1)
+    @inbounds M!(zetas1[j], rng1, p, zetaAncs1[j], pScratch)
+    @inbounds M!(zetas2[j], rng2, p, zetaAncs2[j], pScratch)
   end
 end
 

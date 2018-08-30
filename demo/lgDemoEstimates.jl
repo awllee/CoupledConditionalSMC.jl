@@ -16,8 +16,8 @@ function runDemo(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
   println("\n-----\nTrue value = ", ko.smoothingMeans[1])
 
   println("\nBackward sampling, dependent initialization")
-  resultsBS = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio, b,
-    m, false, maxit)
+  resultsBS = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio,
+    b, m, :BS, false, maxit)
   println("mean of estimates = ", mean(resultsBS[2]))
   println("mean no. iterations = ", mean(resultsBS[1]))
   println("estimated variance of estimator = ", var(resultsBS[2]))
@@ -25,8 +25,8 @@ function runDemo(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
     (mean(resultsBS[2]) - ko.smoothingMeans[1])/sqrt(var(resultsBS[2])/m))
 
   println("\nBackward sampling, independent initialization")
-  resultsBS = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio, b,
-    m, true, maxit)
+  resultsBS = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio,
+    b, m, :BS, true, maxit)
   println("mean of estimates = ", mean(resultsBS[2]))
   println("mean no. iterations = ", mean(resultsBS[1]))
   println("estimated variance of estimator = ", var(resultsBS[2]))
@@ -53,7 +53,7 @@ function runDemo(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
 
   println("\nAncestor sampling, dependent initialization")
   results = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio, b, m,
-    false, maxit, true)
+    :AS, false, maxit)
   println("mean of estimates = ", mean(results[2]))
   println("mean no. iterations = ", mean(results[1]))
   println("estimated variance of estimator = ", var(results[2]))
@@ -62,7 +62,7 @@ function runDemo(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
 
   println("\nAncestor sampling, independent initialization")
   results = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio, b, m,
-    true, maxit, true)
+    :AS, true, maxit)
   println("mean of estimates = ", mean(results[2]))
   println("mean no. iterations = ", mean(results[1]))
   println("estimated variance of estimator = ", var(results[2]))

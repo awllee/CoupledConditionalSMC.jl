@@ -27,26 +27,20 @@ function makeString(v1::Vector{Particle}, v2::Vector{Particle},
 end
 
 # run the CCxPF and visualize until the meeting time
-function visualizeCCSMC(model::SMCModel, lM::F, N::Int64, maxit::Int64,
-  ancestorSampling::Bool = false) where F<:Function
+function visualizeCCSMC(model::SMCModel, lM::F, N::Int64,
+  algorithm::Symbol = :BS, independentInitialization::Bool = false,
+  maxit::Int64 = typemax(Int64)) where F<:Function
 
-  uselM::Bool = lM != error
-  if uselM
-    if ancestorSampling
-      println("\nAncestor sampling, N = ", N, ":\n")
-    else
-      println("\nBackward sampling, N = ", N, ":\n")
-    end
+  if algorithm == :BS
+    println("\nBackward sampling, N = ", N, ":\n")
+  elseif algorithm == :AS
+    println("\nAncestor sampling, N = ", N, ":\n")
   else
     println("\nAncestral tracing, N = ", N, ":\n")
   end
   ccsmcio = CCSMCIO{model.particle, model.pScratch}(N, model.maxn)
 
-  if uselM
-    initializeCCSMC(model, lM, ccsmcio, true)
-  else
-    initializeCCSMC(model, ccsmcio, true)
-  end
+  initializeCCSMC(model, lM, ccsmcio, algorithm, independentInitialization)
 
   quantum = max(1, ceil(Int64, ccsmcio.n / displaysize(stdout)[2]))
 
@@ -56,8 +50,8 @@ function visualizeCCSMC(model::SMCModel, lM::F, N::Int64, maxit::Int64,
   printstyled(makeString(ref1, ref2, quantum), color=:green)
 
   for i in 1:maxit
-    if uselM
-      ccXpf!(model, lM, ccsmcio, ancestorSampling)
+    if algorithm == :BS || algorithm == :AS
+      ccXpf!(model, lM, ccsmcio, algorithm)
     else
       ccXpf!(model, ccsmcio)
     end
@@ -72,8 +66,9 @@ function visualizeCCSMC(model::SMCModel, lM::F, N::Int64, maxit::Int64,
 end
 
 # run the CCPF and visualize until the meeting time
-function visualizeCCSMC(model::SMCModel, N::Int64, maxit::Int64)
-  return visualizeCCSMC(model, error, N, maxit)
+function visualizeCCSMC(model::SMCModel, N::Int64,
+  independentInitialization::Bool = false, maxit::Int64 = typemax(Int64))
+  return visualizeCCSMC(model, error, N, :AT, independentInitialization, maxit)
 end
 
 function computeBoundary(v1::Vector{Particle}, v2::Vector{Particle}) where Particle
@@ -84,17 +79,11 @@ function computeBoundary(v1::Vector{Particle}, v2::Vector{Particle}) where Parti
 end
 
 # run the CCBPF and record the boundaries
-function CCSMCBoundaries(model::SMCModel, lM::F, N::Int64, maxit::Int64,
-  verbose::Bool = false) where F<:Function
-
-  uselM::Bool = lM != error
+function CCSMCBoundaries(model::SMCModel, lM::F, N::Int64,
+  algorithm::Symbol, maxit::Int64) where F<:Function
 
   ccsmcio = CCSMCIO{model.particle, model.pScratch}(N, model.maxn)
-  if uselM
-    initializeCCSMC(model, lM, ccsmcio)
-  else
-    initializeCCSMC(model, ccsmcio)
-  end
+  initializeCCSMC(model, lM, ccsmcio, algorithm, true)
 
   boundaries = Vector{Int64}(undef, maxit)
   ref1 = ccsmcio.ref1
@@ -103,17 +92,9 @@ function CCSMCBoundaries(model::SMCModel, lM::F, N::Int64, maxit::Int64,
 
   maxb::Int64 = 1
   for i in 1:maxit
-    if uselM
-      ccXpf!(model, lM, ccsmcio)
-    else
-      ccXpf!(model, ccsmcio)
-    end
+    ccXpf!(model, lM, ccsmcio, algorithm)
     boundary = computeBoundary(ref1, ref2)
     boundaries[i] = boundary
-    if verbose && boundary > maxb
-      maxb = boundary
-      println(boundary, " : ", i)
-    end
     if boundary == n
       return boundaries[1:i]
     end
@@ -121,7 +102,7 @@ function CCSMCBoundaries(model::SMCModel, lM::F, N::Int64, maxit::Int64,
   return boundaries
 end
 
-function CCSMCBoundaries(model::SMCModel, N::Int64, maxit::Int64,
-  verbose::Bool = false)
-  return CCSMCBoundaries(model, error, N, maxit, verbose)
+function CCSMCBoundaries(model::SMCModel, N::Int64,
+  maxit::Int64 = typemax(Int64))
+  return CCSMCBoundaries(model, error, N, maxit, :AT)
 end
