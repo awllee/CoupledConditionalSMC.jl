@@ -7,6 +7,8 @@ using Random
 include("structures.jl")
 include("subroutines.jl")
 include("algorithms.jl")
+include("unbiased.jl")
+include("couplingTime.jl")
 
 export CCSMCIO, ccXpf!, initializeCCSMC
 

@@ -119,6 +119,7 @@ function _pickParticles!(ccsmcio)
   ws1 = ccsmcio.smcio1.ws
   ws2 = ccsmcio.smcio2.ws
   idxs = _coupledSampleIndices(ccsmcio, ws1, ws2)
+  # idxs = _systematic1(ws1, ws2)
   _trace!(ccsmcio.ref1, ccsmcio.smcio1, idxs[1])
   _trace!(ccsmcio.ref2, ccsmcio.smcio2, idxs[2])
 end
@@ -198,3 +199,49 @@ function _ancestorSample!(ccsmcio, p, lM::F) where F<:Function
   ccsmcio.smcio1.internal.as[1] = k1
   ccsmcio.smcio2.internal.as[1] = k2
 end
+
+function checkEqual(v1::Vector{Particle}, v2::Vector{Particle}) where Particle
+  for i = 1:length(v1)
+    if v1[i] != v2[i]
+      return false
+    end
+  end
+  return true
+end
+
+## JLS use systematic sampling to trace particles and do ancestor sampling
+## it doesn't seem to make much difference
+function _systematic1(ws1, ws2)
+  rng = getRNG()
+  v = rand(rng) * length(ws1)
+  u = v
+  j = 1
+  while u > ws1[j]
+    u -= ws1[j]
+    j += 1
+  end
+  idx1 = j
+
+  u = v
+  j = 1
+  while u > ws2[j]
+    u -= ws2[j]
+    j += 1
+  end
+  idx2 = j
+  return (idx1, idx2)
+end
+
+# function _coupledSampleIndices(ccsmcio, ws1, ws2)
+#   _computeWeights(ccsmcio, ws1, ws2)
+#   rng = getRNG()
+#   cProb = sum(ccsmcio.cws)
+#   if rand(rng) < cProb
+#     idx = sampleCategorical(ccsmcio.cws, rng)
+#     return (idx, idx)
+#   else
+#     idx1 = sampleCategorical(ccsmcio.rws1, rng)
+#     idx2 = sampleCategorical(ccsmcio.rws2, rng)
+#     return (idx1, idx2)
+#   end
+# end
