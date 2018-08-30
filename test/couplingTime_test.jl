@@ -16,14 +16,14 @@ function testCouplingTime(n::Int64, N::Int64, maxit::Int64)
 
   ccsmcio = CCSMCIO{model.particle, model.pScratch}(N, model.maxn)
 
-  timeBS = CoupledConditionalSMC.couplingTime(model, lM, ccsmcio, false, maxit)
+  timeBS = CoupledConditionalSMC.couplingTime(model, lM, ccsmcio, :BS)
   @test timeBS > 0
-  timeAS = CoupledConditionalSMC.couplingTime(model, lM, ccsmcio, false, maxit, true)
+  timeAS = CoupledConditionalSMC.couplingTime(model, lM, ccsmcio, :AS)
   @test timeAS > 0
-  timeAT = CoupledConditionalSMC.couplingTime(model, ccsmcio, false, maxit)
+  timeAT = CoupledConditionalSMC.couplingTime(model, ccsmcio)
   @test timeAT > 0
 
-  timesBS = CoupledConditionalSMC.couplingTimes(model, lM, ccsmcio, false, 100, maxit)
+  timesBS = CoupledConditionalSMC.couplingTimes(model, lM, ccsmcio, 100, :BS)
   @test all(timesBS .> 0)
 end
 

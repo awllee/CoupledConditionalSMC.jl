@@ -22,9 +22,9 @@ function testEstimate(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
   end
 
   # just check the code runs
-  CoupledConditionalSMC.initializeCCSMC(model, ccsmcio, true)
+  CoupledConditionalSMC.initializeCCSMC(model, ccsmcio)
   # just check the code runs
-  CoupledConditionalSMC.initializeCCSMC(model, lM, ccsmcio, true)
+  CoupledConditionalSMC.initializeCCSMC(model, lM, ccsmcio, :BS)
 
   # # just check the code runs
   # CoupledConditionalSMC.unbiasedEstimate(model, h, ccsmcio, b, maxit)
@@ -32,17 +32,17 @@ function testEstimate(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
   trueValue = ko.smoothingMeans[1]
 
   resultsBS = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio, b, m,
-    false, maxit)
+    :BS)
   @test mean(resultsBS[2]) ≈ trueValue atol=0.1
   Zval = (mean(resultsBS[2]) - trueValue)/sqrt(var(resultsBS[2])/m)
   @test abs(Zval) < 3
 
-  results = CoupledConditionalSMC.unbiasedEstimates(model, h, ccsmcio, b, m, false, maxit)
+  results = CoupledConditionalSMC.unbiasedEstimates(model, h, ccsmcio, b, m)
   Zval = (mean(results[2]) - trueValue)/sqrt(var(results[2])/m)
   @test abs(Zval) < 3
 
   results = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio, b, m,
-    false, maxit, true)
+    :AS)
   Zval = (mean(results[2]) - trueValue)/sqrt(var(results[2])/m)
   @test abs(Zval) < 3
 end
