@@ -1,7 +1,7 @@
 import SimpleSMC: particleCopy!, _copyParticles!, _mutateParticles!,
   _logWeightParticles!, _intermediateOutput!, pickParticle!,
   _sampleCategoricalSorted!
-import NonUniformRandomVariateGeneration.sampleCategorical
+import NonUniformRandomVariateGeneration: sampleCategorical, sampleBinomial
 
 
 function _indexCoupledMutateParticles!(zetas1::Vector{Particle},
@@ -54,7 +54,6 @@ function _computeWeights(ccsmcio::CCSMCIO, ws1::Vector{Float64},
   end
 
   rws1 .= nws1 .- cws
-
   rws2 .= nws2 .- cws
 end
 
@@ -64,10 +63,7 @@ function _coupledResample!(ccsmcio::CCSMCIO)
   cProb = sum(ccsmcio.cws)
 
   N::Int64 = ccsmcio.N
-  nCommon::Int64 = 0
-  for i in 1:N-1
-    (rand(rng) < cProb) && (nCommon += 1)
-  end
+  nCommon::Int64 = sampleBinomial(N-1, cProb, rng)
 
   as1 = ccsmcio.smcio1.internal.as
   as2 = ccsmcio.smcio2.internal.as
@@ -88,6 +84,7 @@ function _coupledResample!(ccsmcio::CCSMCIO)
     _sampleCategoricalSorted!(as2, ccsmcio.rws2, N-nCommon-1, scratch1,
       scratch2, 1+nCommon, rng)
   end
+
 end
 
 function _coupledSampleIndices(ccsmcio, ws1, ws2)
@@ -209,7 +206,7 @@ function checkEqual(v1::Vector{Particle}, v2::Vector{Particle}) where Particle
   return true
 end
 
-## JLS use systematic sampling to trace particles and do ancestor sampling
+## JLS use systematic sampling to pick a final particle and do ancestor sampling
 ## it doesn't seem to make much difference
 function _systematic1(ws1, ws2)
   rng = getRNG()
@@ -231,17 +228,3 @@ function _systematic1(ws1, ws2)
   idx2 = j
   return (idx1, idx2)
 end
-
-# function _coupledSampleIndices(ccsmcio, ws1, ws2)
-#   _computeWeights(ccsmcio, ws1, ws2)
-#   rng = getRNG()
-#   cProb = sum(ccsmcio.cws)
-#   if rand(rng) < cProb
-#     idx = sampleCategorical(ccsmcio.cws, rng)
-#     return (idx, idx)
-#   else
-#     idx1 = sampleCategorical(ccsmcio.rws1, rng)
-#     idx2 = sampleCategorical(ccsmcio.rws2, rng)
-#     return (idx1, idx2)
-#   end
-# end
