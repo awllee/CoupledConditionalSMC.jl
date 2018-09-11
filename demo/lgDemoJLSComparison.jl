@@ -21,7 +21,7 @@ setRNGs(12345)
 
 function runDemo(model, N, n, m, AT, AS, BS)
   println("LG Model with N = ", N, ", n = ", n)
-  
+
 ## JLS use independent initialization
 
   if AT
@@ -63,14 +63,23 @@ end
 # N = 1024 T = 400 12.74 (10.96) 6.77 (3.47)
 # N = 2048 T = 800 13.58 (9.56) 6.34 (2.95)
 
-runDemo(model, 128, 50, 1000, true, true, true)
-runDemo(model, 256, 100, 1000, true, true, true)
-runDemo(model, 512, 200, 1000, true, true, true)
-runDemo(model, 1024, 400, 1000, true, true, true)
-runDemo(model, 2048, 800, 1000, true, true, true)
-# runDemo(model, 256, 500, 100, false, true, true)
-# runDemo(model, 256, 1000, 100, false, true, true)
-# runDemo(model, 256, 2000, 100, false, true, true)
+m = 128
 
-# runDemo(model, 200, 2000, 10, false, true, true)
-# runDemo(model, 100, 2000, 1, false, true, true)
+runDemo(model, 64, 50, m, true, true, true)
+runDemo(model, 128, 50, m, true, true, true)
+
+runDemo(model, 128, 100, m, true, true, true)
+runDemo(model, 256, 100, m, true, true, true)
+
+runDemo(model, 256, 200, m, true, true, true)
+runDemo(model, 512, 200, m, true, true, true)
+
+runDemo(model, 512, 400, m, true, true, true)
+runDemo(model, 1024, 400, m, true, true, true)
+
+runDemo(model, 64, 800, m, false, true, true)
+runDemo(model, 128, 800, m, false, true, true)
+runDemo(model, 256, 800, m, false, true, true)
+runDemo(model, 512, 800, m, false, true, true)
+runDemo(model, 1024, 800, m, true, true, true)
+runDemo(model, 2048, 800, m, true, true, true)
