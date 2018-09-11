@@ -16,6 +16,7 @@ function testapproxequal(a::Float64, b::Float64, tol::Float64, verbose::Bool)
   @test v < tol
 end
 
+include("ffkJLS_test.jl")
 include("ffk_test.jl")
 include("estimate_test.jl")
 include("couplingTime_test.jl")

@@ -9,6 +9,7 @@ include("subroutines.jl")
 include("algorithms.jl")
 include("unbiased.jl")
 include("couplingTime.jl")
+include("jls.jl")
 
 export CCSMCIO, ccXpf!, initializeCCSMC
 

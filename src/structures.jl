@@ -19,6 +19,10 @@ struct CCSMCIO{Particle, ParticleScratch}
   # backward sampling weights
   bws1::Vector{Float64}
   bws2::Vector{Float64}
+
+  extraRNG::RNG # for rng coupled sampling
+  idxs::Vector{Int64} # for JLS
+  σ::Vector{Int64} # for JLS
 end
 
 function CCSMCIO{Particle, ParticleScratch}(N::Int64, n::Int64) where
@@ -38,6 +42,11 @@ function CCSMCIO{Particle, ParticleScratch}(N::Int64, n::Int64) where
   rws2 = Vector{Float64}(undef, N)
   bws1 = Vector{Float64}(undef, N)
   bws2 = Vector{Float64}(undef, N)
+
+  extraRNG = deepcopy(getRNG())
+  idxs = Vector{Int64}(undef, N)
+  σ = Vector{Int64}(undef, N-1)
+
   return CCSMCIO{Particle, ParticleScratch}(N, n, smcio1, smcio2, ref1, ref2,
-    nws1, nws2, cws, rws1, rws2, bws1, bws2)
+    nws1, nws2, cws, rws1, rws2, bws1, bws2, extraRNG, idxs, σ)
 end

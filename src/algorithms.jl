@@ -28,7 +28,7 @@ function _ccXpf!(model::SMCModel, ccsmcio::CCSMCIO{Particle}, lM::F,
 
     if rngCouple
       _rngCoupledMutateParticles!(zetas1, zetas2, model.M!, p, zetaAncs1,
-        zetaAncs2, pScratch, ccsmcio.ref1[p], ccsmcio.ref2[p])
+        zetaAncs2, pScratch, ccsmcio.ref1[p], ccsmcio.ref2[p], ccsmcio.extraRNG)
     else
       _indexCoupledMutateParticles!(zetas1, zetas2, model.M!, p, zetaAncs1,
         zetaAncs2, pScratch, ccsmcio.ref1[p], ccsmcio.ref2[p])

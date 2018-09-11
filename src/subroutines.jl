@@ -24,14 +24,14 @@ end
 function _rngCoupledMutateParticles!(zetas1::Vector{Particle},
   zetas2::Vector{Particle}, M!::F, p::Int64, zetaAncs1::Vector{Particle},
   zetaAncs2::Vector{Particle}, pScratch::ParticleScratch, xref1::Particle,
-  xref2::Particle) where {Particle, F<:Function, ParticleScratch}
+  xref2::Particle, extraRNG::RNG) where {Particle, F<:Function, ParticleScratch}
   @inbounds particleCopy!(zetas1[1], xref1)
   @inbounds particleCopy!(zetas2[1], xref2)
-  rng1 = getRNG()
-  rng2 = deepcopy(rng1)
+  rng = getRNG()
+  copyto!(extraRNG, rng)
   for j in 2:length(zetas1)
-    @inbounds M!(zetas1[j], rng1, p, zetaAncs1[j], pScratch)
-    @inbounds M!(zetas2[j], rng2, p, zetaAncs2[j], pScratch)
+    @inbounds M!(zetas1[j], rng, p, zetaAncs1[j], pScratch)
+    @inbounds M!(zetas2[j], extraRNG, p, zetaAncs2[j], pScratch)
   end
 end
 
@@ -115,10 +115,9 @@ end
 function _pickParticles!(ccsmcio)
   ws1 = ccsmcio.smcio1.ws
   ws2 = ccsmcio.smcio2.ws
-  idxs = _coupledSampleIndices(ccsmcio, ws1, ws2)
-  # idxs = _systematic1(ws1, ws2)
-  _trace!(ccsmcio.ref1, ccsmcio.smcio1, idxs[1])
-  _trace!(ccsmcio.ref2, ccsmcio.smcio2, idxs[2])
+  k1, k2 = _coupledSampleIndices(ccsmcio, ws1, ws2)
+  _trace!(ccsmcio.ref1, ccsmcio.smcio1, k1)
+  _trace!(ccsmcio.ref2, ccsmcio.smcio2, k2)
 end
 
 function _pickParticlesBS!(ccsmcio::CCSMCIO{Particle}, lM::F) where
@@ -135,9 +134,7 @@ function _pickParticlesBS!(ccsmcio::CCSMCIO{Particle}, lM::F) where
 
   ws1 = ccsmcio.smcio1.ws
   ws2 = ccsmcio.smcio2.ws
-  idxs = _coupledSampleIndices(ccsmcio, ws1, ws2)
-  k1 = idxs[1]
-  k2 = idxs[2]
+  k1, k2 = _coupledSampleIndices(ccsmcio, ws1, ws2)
   particleCopy!(ref1[n], allZetas1[n][k1])
   particleCopy!(ref2[n], allZetas2[n][k2])
 
@@ -155,9 +152,7 @@ function _pickParticlesBS!(ccsmcio::CCSMCIO{Particle}, lM::F) where
     bws1 .= exp.(bws1 .- m)
     m = maximum(bws2)
     bws2 .= exp.(bws2 .- m)
-    idxs = _coupledSampleIndices(ccsmcio, bws1, bws2)
-    k1 = idxs[1]
-    k2 = idxs[2]
+    k1, k2 = _coupledSampleIndices(ccsmcio, bws1, bws2)
     particleCopy!(ref1[p], allZetas1[p][k1])
     particleCopy!(ref2[p], allZetas2[p][k2])
   end
@@ -204,27 +199,4 @@ function checkEqual(v1::Vector{Particle}, v2::Vector{Particle}) where Particle
     end
   end
   return true
-end
-
-## JLS use systematic sampling to pick a final particle and do ancestor sampling
-## it doesn't seem to make much difference
-function _systematic1(ws1, ws2)
-  rng = getRNG()
-  v = rand(rng) * length(ws1)
-  u = v
-  j = 1
-  while u > ws1[j]
-    u -= ws1[j]
-    j += 1
-  end
-  idx1 = j
-
-  u = v
-  j = 1
-  while u > ws2[j]
-    u -= ws2[j]
-    j += 1
-  end
-  idx2 = j
-  return (idx1, idx2)
 end

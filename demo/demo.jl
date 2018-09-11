@@ -29,7 +29,7 @@ end
 # run the CCxPF and visualize until the meeting time
 function visualizeCCSMC(model::SMCModel, lM::F, N::Int64,
   algorithm::Symbol = :BS, independentInitialization::Bool = false,
-  maxit::Int64 = typemax(Int64)) where F<:Function
+  rngCouple::Bool = false, maxit::Int64 = typemax(Int64)) where F<:Function
 
   if algorithm == :BS
     println("\nBackward sampling, N = ", N, ":\n")
@@ -67,8 +67,10 @@ end
 
 # run the CCPF and visualize until the meeting time
 function visualizeCCSMC(model::SMCModel, N::Int64,
-  independentInitialization::Bool = false, maxit::Int64 = typemax(Int64))
-  return visualizeCCSMC(model, error, N, :AT, independentInitialization, maxit)
+  independentInitialization::Bool = false, rngCouple::Bool = false,
+  maxit::Int64 = typemax(Int64))
+  return visualizeCCSMC(model, error, N, :AT, independentInitialization,
+    rngCouple, maxit)
 end
 
 function computeBoundary(v1::Vector{Particle}, v2::Vector{Particle}) where Particle
