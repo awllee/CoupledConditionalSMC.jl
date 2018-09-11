@@ -21,37 +21,36 @@ setRNGs(12345)
 
 function runDemo(model, N, n, m, AT, AS, BS)
   println("LG Model with N = ", N, ", n = ", n)
-  ccsmcio = CCSMCIO{model.particle, model.pScratch}(N, n)
-
+  
 ## JLS use independent initialization
 
   if AT
     println("Ancestral Tracing:")
-    vs = CoupledConditionalSMC.couplingTimes(model, ccsmcio, m, true, true)
+    vs = CoupledConditionalSMC.couplingTimes(model, N, n, m, true, true)
     println(mean(vs), ", ", std(vs))
     println()
 
     println("JLS Ancestral Tracing:")
-    vs = CoupledConditionalSMC.couplingTimesJLS(model, ccsmcio, m, true)
+    vs = CoupledConditionalSMC.couplingTimesJLS(model, N, n, m, true)
     println(mean(vs), ", ", std(vs))
     println()
   end
 
   if AS
     println("Ancestor Sampling:")
-    vs = CoupledConditionalSMC.couplingTimes(model, lM, ccsmcio, m, :AS, true, true)
+    vs = CoupledConditionalSMC.couplingTimes(model, lM, N, n, m, :AS, true, true)
     println(mean(vs), ", ", std(vs))
     println()
 
     println("JLS Ancestor Sampling:")
-    vs = CoupledConditionalSMC.couplingTimesJLS(model, lM, ccsmcio, m, :AS, true)
+    vs = CoupledConditionalSMC.couplingTimesJLS(model, lM, N, n, m, :AS, true)
     println(mean(vs), ", ", std(vs))
     println()
   end
 
   if BS
     println("Backward Sampling:")
-    vs = CoupledConditionalSMC.couplingTimes(model, lM, ccsmcio, m, :BS, true, true)
+    vs = CoupledConditionalSMC.couplingTimes(model, lM, N, n, m, :BS, true, true)
     println(mean(vs), ", ", std(vs))
     println()
   end

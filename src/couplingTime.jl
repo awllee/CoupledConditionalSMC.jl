@@ -24,21 +24,30 @@ function couplingTime(model::SMCModel, ccsmcio::CCSMCIO{Particle},
     rngCouple, maxit)
 end
 
-function couplingTimes(model::SMCModel, lM::F, ccsmcio::CCSMCIO{Particle},
+function couplingTimes(model::SMCModel, lM::F, N::Int64, n::Int64,
   m::Int64, algorithm::Symbol = :BS, independentInitialization::Bool=false,
   rngCouple::Bool = false, maxit::Int64 = typemax(Int64)) where
   {F<:Function, Particle}
+  nt = Threads.nthreads()
+  ccsmcios::Vector{CCSMCIO{model.particle, model.pScratch}} =
+    Vector{CCSMCIO{model.particle, model.pScratch}}(undef, nt)
+  Threads.@threads for i in 1:nt
+    ccsmcios[i] = CCSMCIO{model.particle, model.pScratch}(N, n)
+  end
   vs::Vector{Int64} = Vector{Int64}(undef, m)
-  @showprogress 10 for i in 1:m
-    vs[i] = couplingTime(model, lM, ccsmcio, algorithm,
+  p = Progress(div(m, nt), 10)
+  Threads.@threads for i in 1:m
+    tid = Threads.threadid()
+    vs[i] = couplingTime(model, lM, ccsmcios[tid], algorithm,
       independentInitialization, rngCouple, maxit)
+    tid == 1 && update!(p, i)
   end
   return vs
 end
 
-function couplingTimes(model::SMCModel, ccsmcio::CCSMCIO{Particle}, m::Int64,
+function couplingTimes(model::SMCModel, N::Int64, n::Int64, m::Int64,
   independentInitialization::Bool = false, rngCouple::Bool = false,
   maxit::Int64 = typemax(Int64)) where Particle
-  return couplingTimes(model, error, ccsmcio, m, :AT, independentInitialization,
+  return couplingTimes(model, error, N, n, m, :AT, independentInitialization,
     rngCouple, maxit)
 end
