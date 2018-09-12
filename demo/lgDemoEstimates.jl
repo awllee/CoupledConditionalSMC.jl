@@ -7,8 +7,6 @@ include("lgModel.jl")
 function runDemo(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
   model, lM, ko = setupLGModel(n, 1.0)
 
-  ccsmcio = CCSMCIO{model.particle, model.pScratch}(N, model.maxn)
-
   function h(path::Vector{Float64Particle})
     return path[1].x
   end
@@ -16,8 +14,8 @@ function runDemo(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
   println("\n-----\nTrue value = ", ko.smoothingMeans[1])
 
   println("\nBackward sampling, dependent initialization")
-  resultsBS = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio,
-    b, m, :BS, false, maxit)
+  resultsBS = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, N, n,
+    b, m, :BS, false, true, maxit)
   println("mean of estimates = ", mean(resultsBS[2]))
   println("mean no. iterations = ", mean(resultsBS[1]))
   println("estimated variance of estimator = ", var(resultsBS[2]))
@@ -25,8 +23,8 @@ function runDemo(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
     (mean(resultsBS[2]) - ko.smoothingMeans[1])/sqrt(var(resultsBS[2])/m))
 
   println("\nBackward sampling, independent initialization")
-  resultsBS = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio,
-    b, m, :BS, true, maxit)
+  resultsBS = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, N, n,
+    b, m, :BS, true, true, maxit)
   println("mean of estimates = ", mean(resultsBS[2]))
   println("mean no. iterations = ", mean(resultsBS[1]))
   println("estimated variance of estimator = ", var(resultsBS[2]))
@@ -34,8 +32,8 @@ function runDemo(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
     (mean(resultsBS[2]) - ko.smoothingMeans[1])/sqrt(var(resultsBS[2])/m))
 
   println("\nAncestral tracing, dependent initialization")
-  results = CoupledConditionalSMC.unbiasedEstimates(model, h, ccsmcio, b, m,
-    false, maxit)
+  results = CoupledConditionalSMC.unbiasedEstimates(model, h, N, n, b, m,
+    false, true, maxit)
   println("mean of estimates = ", mean(results[2]))
   println("mean no. iterations = ", mean(results[1]))
   println("estimated variance of estimator = ", var(results[2]))
@@ -43,8 +41,8 @@ function runDemo(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
     (mean(results[2]) - ko.smoothingMeans[1])/sqrt(var(results[2])/m))
 
   println("\nAncestral tracing, independent initialization")
-  results = CoupledConditionalSMC.unbiasedEstimates(model, h, ccsmcio, b, m,
-    true, maxit)
+  results = CoupledConditionalSMC.unbiasedEstimates(model, h, N, n, b, m,
+    true, true, maxit)
   println("mean of estimates = ", mean(results[2]))
   println("mean no. iterations = ", mean(results[1]))
   println("estimated variance of estimator = ", var(results[2]))
@@ -52,8 +50,8 @@ function runDemo(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
     (mean(results[2]) - ko.smoothingMeans[1])/sqrt(var(results[2])/m))
 
   println("\nAncestor sampling, dependent initialization")
-  results = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio, b, m,
-    :AS, false, maxit)
+  results = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, N, n, b, m,
+    :AS, false, true, maxit)
   println("mean of estimates = ", mean(results[2]))
   println("mean no. iterations = ", mean(results[1]))
   println("estimated variance of estimator = ", var(results[2]))
@@ -61,8 +59,8 @@ function runDemo(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
     (mean(results[2]) - ko.smoothingMeans[1])/sqrt(var(results[2])/m))
 
   println("\nAncestor sampling, independent initialization")
-  results = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio, b, m,
-    :AS, true, maxit)
+  results = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, N, n, b, m,
+    :AS, true, true, maxit)
   println("mean of estimates = ", mean(results[2]))
   println("mean no. iterations = ", mean(results[1]))
   println("estimated variance of estimator = ", var(results[2]))

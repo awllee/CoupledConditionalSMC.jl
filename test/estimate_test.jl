@@ -31,17 +31,17 @@ function testEstimate(n::Int64, N::Int64, b::Int64, m::Int64, maxit::Int64)
 
   trueValue = ko.smoothingMeans[1]
 
-  resultsBS = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio, b, m,
+  resultsBS = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, N, n, b, m,
     :BS)
   @test mean(resultsBS[2]) ≈ trueValue atol=0.1
   Zval = (mean(resultsBS[2]) - trueValue)/sqrt(var(resultsBS[2])/m)
   @test abs(Zval) < 3
 
-  results = CoupledConditionalSMC.unbiasedEstimates(model, h, ccsmcio, b, m)
+  results = CoupledConditionalSMC.unbiasedEstimates(model, h, N, n, b, m)
   Zval = (mean(results[2]) - trueValue)/sqrt(var(results[2])/m)
   @test abs(Zval) < 3
 
-  results = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, ccsmcio, b, m,
+  results = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, N, n, b, m,
     :AS)
   Zval = (mean(results[2]) - trueValue)/sqrt(var(results[2])/m)
   @test abs(Zval) < 3

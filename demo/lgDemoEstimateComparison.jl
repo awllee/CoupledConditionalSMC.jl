@@ -22,36 +22,36 @@ setRNGs(12345)
 function runDemo(model, N, n, m, AT, AS, BS)
   println("LG Model with N = ", N, ", n = ", n)
 
-## JLS use independent initialization
+  function h(path::Vector{Float64Particle})
+    return path[1].x
+  end
+
+  println("\n-----\nTrue value = ", ko.smoothingMeans[1])
 
   if AT
     println("Ancestral Tracing:")
-    vs = CoupledConditionalSMC.couplingTimes(model, N, n, m, true, true)
-    println(mean(vs), ", ", std(vs))
-    println()
-
-    println("JLS Ancestral Tracing:")
-    vs = CoupledConditionalSMC.couplingTimesJLS(model, N, n, m, true)
-    println(mean(vs), ", ", std(vs))
+    times, values = CoupledConditionalSMC.unbiasedEstimates(model, h, N, n, 1,
+      m, true, true)
+    println(mean(times), ", ", std(times))
+    println(mean(values), ", ", std(values))
     println()
   end
 
   if AS
     println("Ancestor Sampling:")
-    vs = CoupledConditionalSMC.couplingTimes(model, lM, N, n, m, :AS, true, true)
-    println(mean(vs), ", ", std(vs))
-    println()
-
-    println("JLS Ancestor Sampling:")
-    vs = CoupledConditionalSMC.couplingTimesJLS(model, lM, N, n, m, :AS, true)
-    println(mean(vs), ", ", std(vs))
+    times, values = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, N, n, 1,
+      m, :AS, true, true)
+    println(mean(times), ", ", std(times))
+    println(mean(values), ", ", std(values))
     println()
   end
 
   if BS
     println("Backward Sampling:")
-    vs = CoupledConditionalSMC.couplingTimes(model, lM, N, n, m, :BS, true, true)
-    println(mean(vs), ", ", std(vs))
+    times, values  = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, N, n, 1,
+      m, :BS, true, true)
+    println(mean(times), ", ", std(times))
+    println(mean(values), ", ", std(values))
     println()
   end
 

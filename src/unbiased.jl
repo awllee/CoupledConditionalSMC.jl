@@ -37,32 +37,42 @@ function unbiasedEstimate(model::SMCModel, h::F, ccsmcio::CCSMCIO{Particle},
 end
 
 function unbiasedEstimates(model::SMCModel, lM::F1, h::F2,
-  ccsmcio::CCSMCIO{Particle}, b::Int64, m::Int64, algorithm::Symbol = :BS,
+  N::Int64, n::Int64, b::Int64, m::Int64, algorithm::Symbol = :BS,
   independentInitialization::Bool = false, rngCouple::Bool = false,
   maxit::Int64 = typemax(Int64)) where {F1<:Function, F2<:Function, Particle}
 
+  nt = Threads.nthreads()
+  ccsmcios::Vector{CCSMCIO{model.particle, model.pScratch}} =
+    Vector{CCSMCIO{model.particle, model.pScratch}}(undef, nt)
+  Threads.@threads for i in 1:nt
+    ccsmcios[i] = CCSMCIO{model.particle, model.pScratch}(N, n)
+  end
+
   # just to get the type of v
-  initializeCCSMC(model, ccsmcio, independentInitialization)
-  v = h(ccsmcio.ref1)
+  initializeCCSMC(model, ccsmcios[1], independentInitialization)
+  v = h(ccsmcios[1].ref1)
   T = typeof(v)
 
   iterations = Vector{Int64}(undef, m)
   values = Vector{T}(undef, m)
 
-  @showprogress 10 for i in 1:m
-    v = unbiasedEstimate(model, lM, h, ccsmcio, b, algorithm,
+  p = Progress(div(m, nt), 10)
+  Threads.@threads for i in 1:m
+    tid = Threads.threadid()
+    v = unbiasedEstimate(model, lM, h, ccsmcios[tid], b, algorithm,
       independentInitialization, rngCouple, maxit)
     iterations[i] = v[1]
     values[i] = v[2]
+    tid == 1 && update!(p, i)
   end
 
   return iterations, values
 end
 
-function unbiasedEstimates(model::SMCModel, h::F, ccsmcio::CCSMCIO{Particle},
+function unbiasedEstimates(model::SMCModel, h::F, N::Int64, n::Int64,
   b::Int64, m::Int64, independentInitialization::Bool = false,
   rngCouple::Bool = false, maxit::Int64 = typemax(Int64)) where
   {F<:Function, Particle}
-  return unbiasedEstimates(model, error, h, ccsmcio, b, m, :AT,
+  return unbiasedEstimates(model, error, h, N, n, b, m, :AT,
     independentInitialization, rngCouple, maxit)
 end
