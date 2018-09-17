@@ -3,7 +3,7 @@ using RNGPool
 using CoupledConditionalSMC
 
 # data generated with A = 0.95 (not 0.9)
-dataJLS = RData.load("demo/ar1data.RData")
+dataJLS = RData.load("ar1data.RData")
 ys = vec(dataJLS["observations"])
 
 include("lgModel.jl")
@@ -13,27 +13,28 @@ include("lgModel.jl")
 theta = LGTheta(0.9, 1.0, 1.0, 1.0, 0.0, 1.81)
 model = makeLGModel(theta, ys)
 lM = LinearGaussian.makelM(theta)
-ko = kalman(theta, ys)
 
 import Statistics: mean, std
 
 setRNGs(12345)
 
 function runDemo(model, N, n, m, AT, AS, BS)
-  println("LG Model with N = ", N, ", n = ", n)
+  println("\n-----\nLG Model with N = ", N, ", n = ", n)
 
   function h(path::Vector{Float64Particle})
     return path[1].x
   end
 
-  println("\n-----\nTrue value = ", ko.smoothingMeans[1])
+  ko = kalman(theta, ys[1:n])
+  println("True value = ", ko.smoothingMeans[1])
+  println()
 
   if AT
     println("Ancestral Tracing:")
     times, values = CoupledConditionalSMC.unbiasedEstimates(model, h, N, n, 1,
       m, true, true)
-    println(mean(times), ", ", std(times))
-    println(mean(values), ", ", std(values))
+    println("times: ", mean(times), ", ", std(times))
+    println("estimates: ", mean(values), ", ", std(values))
     println()
   end
 
@@ -41,8 +42,8 @@ function runDemo(model, N, n, m, AT, AS, BS)
     println("Ancestor Sampling:")
     times, values = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, N, n, 1,
       m, :AS, true, true)
-    println(mean(times), ", ", std(times))
-    println(mean(values), ", ", std(values))
+    println("times: ", mean(times), ", ", std(times))
+    println("estimates: ", mean(values), ", ", std(values))
     println()
   end
 
@@ -50,20 +51,16 @@ function runDemo(model, N, n, m, AT, AS, BS)
     println("Backward Sampling:")
     times, values  = CoupledConditionalSMC.unbiasedEstimates(model, lM, h, N, n, 1,
       m, :BS, true, true)
-    println(mean(times), ", ", std(times))
-    println(mean(values), ", ", std(values))
+    println("times: ", mean(times), ", ", std(times))
+    println("estimates: ", mean(values), ", ", std(values))
     println()
   end
 
 end
 
-# N = 128 T = 50 17.84 (17.13) 7.73 (5.11)
-# N = 256 T = 100 13.16 (11.09) 7.59 (5.05)
-# N = 512 T = 200 12.52 (10.64) 6.77 (3.85)
-# N = 1024 T = 400 12.74 (10.96) 6.77 (3.47)
-# N = 2048 T = 800 13.58 (9.56) 6.34 (2.95)
-
 m = 1000
+
+println("\nValues are presented as mean, one standard deviation\n")
 
 runDemo(model, 64, 50, m, true, true, true)
 runDemo(model, 128, 50, m, true, true, true)
