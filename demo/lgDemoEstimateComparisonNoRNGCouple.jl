@@ -18,7 +18,7 @@ import Statistics: mean, std
 
 setRNGs(12345)
 
-const rngCouple = true
+const rngCouple = false
 
 function runDemo(model, N, n, m, AT, AS, BS)
   println("\n-----\nLG Model with N = ", N, ", n = ", n)
@@ -73,12 +73,12 @@ runDemo(model, 256, 100, m, true, true, true)
 runDemo(model, 256, 200, m, true, true, true)
 runDemo(model, 512, 200, m, true, true, true)
 
-runDemo(model, 512, 400, m, true, true, true)
-runDemo(model, 1024, 400, m, true, true, true)
+runDemo(model, 512, 400, m, false, true, true)
+runDemo(model, 1024, 400, m, false, true, true)
 
-runDemo(model, 64, 800, m, false, true, true)
-runDemo(model, 128, 800, m, false, true, true)
-runDemo(model, 256, 800, m, false, true, true)
-runDemo(model, 512, 800, m, false, true, true)
-runDemo(model, 1024, 800, m, true, true, true)
-runDemo(model, 2048, 800, m, true, true, true)
+runDemo(model, 64, 800, m, false, false, true)
+runDemo(model, 128, 800, m, false, false, true)
+runDemo(model, 256, 800, m, false, false, true)
+runDemo(model, 512, 800, m, false, false, true)
+runDemo(model, 1024, 800, m, false, false, true)
+runDemo(model, 2048, 800, m, false, false, true)
