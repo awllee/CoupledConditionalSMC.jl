@@ -6,7 +6,7 @@ using CoupledConditionalSMC
 dataJLS = RData.load("demo/ar1data.RData")
 ys = vec(dataJLS["observations"])
 
-include("lgModel.jl")
+include("../demo/lgModel.jl")
 
 # they start at time 0 with observations from time 1,2,...
 # so we have an initial distribution of N(0,1+0.9^2)
@@ -70,10 +70,3 @@ runDemo(model, 512, 200, m, true, true, true)
 
 runDemo(model, 512, 400, m, true, true, true)
 runDemo(model, 1024, 400, m, true, true, true)
-
-runDemo(model, 64, 800, m, false, true, true)
-runDemo(model, 128, 800, m, false, true, true)
-runDemo(model, 256, 800, m, false, true, true)
-runDemo(model, 512, 800, m, false, true, true)
-runDemo(model, 1024, 800, m, true, true, true)
-runDemo(model, 2048, 800, m, true, true, true)
