@@ -36,13 +36,22 @@ function couplingTimes(model::SMCModel, lM::F, N::Int64, n::Int64,
   end
   vs::Vector{Int64} = Vector{Int64}(undef, m)
   p = Progress(div(m, nt), 10)
+  abort = false
   Threads.@threads for i in 1:m
     tid = Threads.threadid()
+    abort && break
     vs[i] = couplingTime(model, lM, ccsmcios[tid], algorithm,
       independentInitialization, rngCouple, maxit)
+    if vs[i] == 0
+      abort = true
+    end
     tid == 1 && update!(p, i)
   end
-  return vs
+  if abort
+    return [missing]
+  else
+    return vs
+  end
 end
 
 function couplingTimes(model::SMCModel, N::Int64, n::Int64, m::Int64,
