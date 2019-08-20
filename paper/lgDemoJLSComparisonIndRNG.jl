@@ -22,23 +22,23 @@ setRNGs(12345)
 m = 1000
 
 using DataFrames
-jls_df = DataFrame(n=Int[], N=Int[], Type=String[], mean=Union{Float64, Missing}[],
+jlsInd_df = DataFrame(n=Int[], N=Int[], Type=String[], mean=Union{Float64, Missing}[],
   std=Union{Float64, Missing}[])
 
 for n in [50, 100, 200, 400, 800, 1600, 3200]
   for k in 6:10
     N = 2^k
     println(n, " ", N)
-    vs = CoupledConditionalSMC.couplingTimes(model, N, n, m, true, true, 2000)
-    push!(jls_df, [n, N, "AT", mean(vs), std(vs)])
-    vs = CoupledConditionalSMC.couplingTimes(model, lM, N, n, m, :AS, true, true, 2000)
-    push!(jls_df, [n, N, "AS", mean(vs), std(vs)])
-    vs = CoupledConditionalSMC.couplingTimes(model, lM, N, n, m, :BS, true, true, 2000)
-    push!(jls_df, [n, N, "BS", mean(vs), std(vs)])
+    vs = CoupledConditionalSMC.couplingTimes(model, N, n, m, true, false, 2000)
+    push!(jlsInd_df, [n, N, "AT", mean(vs), std(vs)])
+    vs = CoupledConditionalSMC.couplingTimes(model, lM, N, n, m, :AS, true, false, 2000)
+    push!(jlsInd_df, [n, N, "AS", mean(vs), std(vs)])
+    vs = CoupledConditionalSMC.couplingTimes(model, lM, N, n, m, :BS, true, false, 2000)
+    push!(jlsInd_df, [n, N, "BS", mean(vs), std(vs)])
   end
 end
 
 using JLD2
-@save "paper/jls.jld2" jls_df
+@save "paper/jlsInd.jld2" jlsInd_df
 
-println(jls_df)
+println(jlsInd_df)

@@ -51,9 +51,9 @@ function visualizeCCSMC(model::SMCModel, lM::F, N::Int64,
 
   for i in 1:maxit
     if algorithm == :BS || algorithm == :AS
-      ccXpf!(model, lM, ccsmcio, algorithm)
+      ccXpf!(model, lM, ccsmcio, algorithm, rngCouple)
     else
-      ccXpf!(model, ccsmcio)
+      ccXpf!(model, ccsmcio, rngCouple)
     end
     printstyled(makeString(ref1, ref2, quantum), color=:green)
     if CoupledConditionalSMC.checkEqual(ref1, ref2)
